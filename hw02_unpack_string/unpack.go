@@ -23,7 +23,7 @@ func Unpack(s string) (string, error) {
 	return result, err
 }
 
-// закрытая ф-ция которая осуществляет примитивную распаковку строки
+// Закрытая ф-ция которая осуществляет примитивную распаковку строки.
 func unpackRuneLetter(current rune, runes []rune) (string, error) {
 	if unicode.IsDigit(current) {
 		return EMPTY, ErrInvalidString
@@ -59,8 +59,8 @@ func unpackRuneLetter(current rune, runes []rune) (string, error) {
 	return result, nil
 }
 
-// вспомогательная ф-ция которая проверяет экранируемые символы
-// если это не числовой символ или не братная косая черта то возвращается ошибка
+// Вспомогательная ф-ция которая проверяет экранируемые символы,
+// если это не числовой символ или не братная косая черта то возвращается ошибка.
 func unpackRuneBackslash(next rune) (string, error) {
 	if !unicode.IsDigit(next) && next != BACKSLASH {
 		return EMPTY, ErrInvalidString
@@ -68,15 +68,15 @@ func unpackRuneBackslash(next rune) (string, error) {
 	return string(next), nil
 }
 
-// вспомогательная ф-ция которая распаковывает текущий символ на p-раз
+// Вспомогательная ф-ция которая распаковывает текущий символ на p-раз.
 func unpackRuneNumber(current rune, p rune) string {
 	n, _ := strconv.Atoi(string(p))
 	return strings.Repeat(string(current), n)
 }
 
-// вспомогательная ф-ция разбивающая массив символов на `голову` и `хвост`
+// Вспомогательная ф-ция разбивающая массив символов на `голову` и `хвост`,
 // при экранировании текущего символа,
-// по указателю current записывается экранируемый символ
+// по указателю current записывается экранируемый символ.
 func splitToHeadAndTailBackslashNumber(current *rune, head *rune, tail []rune) (*rune, []rune) {
 	h, t := splitToHeadAndTail(tail)
 	if nil == h {
@@ -88,7 +88,7 @@ func splitToHeadAndTailBackslashNumber(current *rune, head *rune, tail []rune) (
 	return h, t
 }
 
-// вспомогательная ф-ция разбивающая массив символов на `голову` и `хвост`
+// Вспомогательная ф-ция разбивающая массив символов на `голову` и `хвост`.
 func splitToHeadAndTail(runes []rune) (*rune, []rune) {
 	if nil == runes || len(runes) == 0 {
 		return nil, nil
