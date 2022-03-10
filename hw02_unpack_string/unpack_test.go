@@ -49,10 +49,9 @@ func TestUnpackRuneLetterInvalidString(t *testing.T) {
 	for _, tc := range invalidStrings {
 		tc := tc
 		t.Run(tc, func(t *testing.T) {
-			count := uint64(0)
 			r := ([]rune(tc))[0]
 			runes := ([]rune(tc))[1 : len(tc)-1]
-			_, err := unpackRuneLetter(r, runes, &count)
+			_, err := unpackRuneLetter(r, runes)
 			require.Truef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
 		})
 	}
@@ -63,12 +62,10 @@ func TestUnpackRuneLetterOneCorrectRune(t *testing.T) {
 	for _, tc := range strings {
 		tc := tc
 		t.Run(tc, func(t *testing.T) {
-			count := uint64(1)
 			r := ([]rune(tc))[0]
 			runes := []rune(nil)
-			_, err := unpackRuneLetter(r, runes, &count)
+			_, err := unpackRuneLetter(r, runes)
 			require.Falsef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
-			require.Equal(t, uint64(1), count)
 		})
 	}
 }
@@ -77,17 +74,15 @@ func TestUnpackRuneLetter(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
-		count    uint64
 	}{
-		{input: "a2", expected: "aa", count: 1},
-		{input: "b3c", expected: "bbbc", count: 2},
-		{input: "б4вгд", expected: "ббббвгд", count: 4},
-		{input: "\n5", expected: "\n\n\n\n\n", count: 1},
+		{input: "a2", expected: "aa"},
+		{input: "b3c", expected: "bbbc"},
+		{input: "б4вгд", expected: "ббббвгд"},
+		{input: "\n5", expected: "\n\n\n\n\n"},
 	}
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
-			count := uint64(0)
 			r := ([]rune(tc.input))[0]
 			var runes []rune
 			if len(tc.input) > 1 {
@@ -95,10 +90,9 @@ func TestUnpackRuneLetter(t *testing.T) {
 			} else {
 				runes = nil
 			}
-			result, err := unpackRuneLetter(r, runes, &count)
+			result, err := unpackRuneLetter(r, runes)
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, result)
-			require.Equal(t, tc.count, count)
 		})
 	}
 }
@@ -110,17 +104,15 @@ func TestSplitToHeadAndTail(t *testing.T) {
 		input     []rune
 		expected1 *rune
 		expected2 []rune
-		expected3 uint64
-		count     uint64
 	}{
-		{input: nil, expected1: nil, expected2: nil, expected3: 0, count: uint64(0)},
-		{input: []rune(""), expected1: nil, expected2: nil, expected3: 0, count: uint64(0)},
-		{input: []rune("a"), expected1: &a, expected2: nil, expected3: 1, count: uint64(0)},
-		{input: []rune("ab"), expected1: &a, expected2: ab, expected3: 1, count: uint64(0)},
+		{input: nil, expected1: nil, expected2: nil},
+		{input: []rune(""), expected1: nil, expected2: nil},
+		{input: []rune("a"), expected1: &a, expected2: nil},
+		{input: []rune("ab"), expected1: &a, expected2: ab},
 	}
 
 	for _, tc := range tests {
-		r, runes := splitToHeadAndTail(tc.input, &tc.count)
+		r, runes := splitToHeadAndTail(tc.input)
 		if nil == tc.expected1 {
 			require.Nil(t, r)
 		} else {
@@ -133,6 +125,5 @@ func TestSplitToHeadAndTail(t *testing.T) {
 			require.NotNil(t, runes)
 			require.EqualValues(t, runes, tc.expected2)
 		}
-		require.EqualValues(t, tc.count, tc.expected3)
 	}
 }
