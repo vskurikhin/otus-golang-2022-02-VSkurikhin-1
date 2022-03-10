@@ -29,31 +29,32 @@ func unpackRuneLetter(current rune, runes []rune) (string, error) {
 	}
 	result := string(current)
 	head, tail := splitToHeadAndTail(runes)
-	if head != nil {
-		if BACKSLASH == current {
-			var err error
-			result, err = unpackRuneBackslash(*head)
-			if err != nil {
-				return EMPTY, err
-			}
-			head, tail = splitToHeadAndTailBackslashNumber(&current, head, tail)
-			if nil == head {
-				return result, nil
-			}
-		}
-		if unicode.IsDigit(*head) {
-			result = unpackRuneNumber(current, *head)
-			head, tail = splitToHeadAndTail(tail)
-			if nil == head {
-				return result, nil
-			}
-		}
-		u, err := unpackRuneLetter(*head, tail)
+	if head == nil {
+		return result, nil
+	}
+	if BACKSLASH == current {
+		var err error
+		result, err = unpackRuneBackslash(*head)
 		if err != nil {
 			return EMPTY, err
 		}
-		result += u
+		head, tail = splitToHeadAndTailBackslashNumber(&current, head, tail)
+		if nil == head {
+			return result, nil
+		}
 	}
+	if unicode.IsDigit(*head) {
+		result = unpackRuneNumber(current, *head)
+		head, tail = splitToHeadAndTail(tail)
+		if nil == head {
+			return result, nil
+		}
+	}
+	u, err := unpackRuneLetter(*head, tail)
+	if err != nil {
+		return EMPTY, err
+	}
+	result += u
 	return result, nil
 }
 
@@ -84,7 +85,7 @@ func splitToHeadAndTail(runes []rune) (*rune, []rune) {
 	if nil == runes || len(runes) == 0 {
 		return nil, nil
 	}
-	if 1 == len(runes) {
+	if len(runes) == 1 {
 		return &runes[0], nil
 	}
 	return &runes[0], runes[1:]
