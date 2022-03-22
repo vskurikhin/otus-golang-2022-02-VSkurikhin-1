@@ -57,10 +57,7 @@ func unpackRuneLetter(b *strings.Builder, current rune, runes []rune) error {
 	} else {
 		b.WriteRune(result)
 	}
-	if err := unpackRuneLetter(b, *head, tail); err != nil {
-		return err
-	}
-	return nil
+	return unpackRuneLetter(b, *head, tail)
 }
 
 // Вспомогательная ф-ция которая проверяет экранируемые символы,
