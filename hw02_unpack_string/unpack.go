@@ -7,8 +7,6 @@ import (
 	"unicode"
 )
 
-const EMPTY = ""
-
 const BACKSLASH = rune('\\')
 
 var ErrInvalidString = errors.New("invalid string")
@@ -19,59 +17,56 @@ func Unpack(s string) (string, error) {
 	}
 	runes := []rune(s)
 	head, tail := splitToHeadAndTail(runes)
-	result, err := unpackRuneLetter(*head, tail)
-	return result, err
+	var builder strings.Builder
+	err := unpackRuneLetter(&builder, *head, tail)
+	return builder.String(), err
 }
 
 // Закрытая ф-ция которая осуществляет примитивную распаковку строки.
-func unpackRuneLetter(current rune, runes []rune) (string, error) {
+func unpackRuneLetter(b *strings.Builder, current rune, runes []rune) error {
 	if unicode.IsDigit(current) {
-		return EMPTY, ErrInvalidString
+		return ErrInvalidString
 	}
-	result := string(current)
+	result := current
 	head, tail := splitToHeadAndTail(runes)
 	if head == nil {
-		return result, nil
+		b.WriteRune(current)
+		return nil
 	}
 	if BACKSLASH == current {
 		var err error
 		result, err = unpackRuneBackslash(*head)
 		if err != nil {
-			return EMPTY, err
+			return err
 		}
 		head, tail = splitToHeadAndTailBackslashNumber(&current, head, tail)
 		if nil == head {
-			return result, nil
+			b.WriteRune(result)
+			return nil
 		}
 	}
 	if unicode.IsDigit(*head) {
-		result = unpackRuneNumber(current, *head)
-		head, tail = splitToHeadAndTail(tail)
-		if nil == head {
-			return result, nil
+		n, err := strconv.Atoi(string(*head))
+		if err != nil {
+			return err
 		}
+		WriteRuneNTimes(b, current, n)
+		if head, tail = splitToHeadAndTail(tail); nil == head {
+			return nil
+		}
+	} else {
+		b.WriteRune(result)
 	}
-	u, err := unpackRuneLetter(*head, tail)
-	if err != nil {
-		return EMPTY, err
-	}
-	result += u
-	return result, nil
+	return unpackRuneLetter(b, *head, tail)
 }
 
 // Вспомогательная ф-ция которая проверяет экранируемые символы,
 // если это не числовой символ или не братная косая черта то возвращается ошибка.
-func unpackRuneBackslash(next rune) (string, error) {
+func unpackRuneBackslash(next rune) (rune, error) {
 	if !unicode.IsDigit(next) && next != BACKSLASH {
-		return EMPTY, ErrInvalidString
+		return 0, ErrInvalidString
 	}
-	return string(next), nil
-}
-
-// Вспомогательная ф-ция которая распаковывает текущий символ на p-раз.
-func unpackRuneNumber(current rune, p rune) string {
-	n, _ := strconv.Atoi(string(p))
-	return strings.Repeat(string(current), n)
+	return next, nil
 }
 
 // Вспомогательная ф-ция разбивающая массив символов на `голову` и `хвост`,
@@ -97,4 +92,10 @@ func splitToHeadAndTail(runes []rune) (*rune, []rune) {
 		return &runes[0], nil
 	}
 	return &runes[0], runes[1:]
+}
+
+func WriteRuneNTimes(b *strings.Builder, r rune, n int) {
+	for i := 0; i < n; i++ {
+		b.WriteRune(r)
+	}
 }

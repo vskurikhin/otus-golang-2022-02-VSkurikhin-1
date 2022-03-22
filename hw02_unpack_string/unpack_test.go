@@ -2,6 +2,7 @@ package hw02unpackstring
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -51,20 +52,22 @@ func TestUnpackRuneLetterInvalidString(t *testing.T) {
 		t.Run(tc, func(t *testing.T) {
 			r := ([]rune(tc))[0]
 			runes := ([]rune(tc))[1 : len(tc)-1]
-			_, err := unpackRuneLetter(r, runes)
+			var b strings.Builder
+			err := unpackRuneLetter(&b, r, runes)
 			require.Truef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
 		})
 	}
 }
 
 func TestUnpackRuneLetterOneCorrectRune(t *testing.T) {
-	strings := []string{"a", "б"}
-	for _, tc := range strings {
+	tests := []string{"a", "б"}
+	for _, tc := range tests {
 		tc := tc
 		t.Run(tc, func(t *testing.T) {
 			r := ([]rune(tc))[0]
 			runes := []rune(nil)
-			_, err := unpackRuneLetter(r, runes)
+			var b strings.Builder
+			err := unpackRuneLetter(&b, r, runes)
 			require.Falsef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
 		})
 	}
@@ -90,9 +93,10 @@ func TestUnpackRuneLetter(t *testing.T) {
 			} else {
 				runes = nil
 			}
-			result, err := unpackRuneLetter(r, runes)
+			var b strings.Builder
+			err := unpackRuneLetter(&b, r, runes)
 			require.NoError(t, err)
-			require.Equal(t, tc.expected, result)
+			require.Equal(t, tc.expected, b.String())
 		})
 	}
 }
