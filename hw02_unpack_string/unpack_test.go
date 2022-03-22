@@ -131,4 +131,3 @@ func TestSplitToHeadAndTail(t *testing.T) {
 		}
 	}
 }
-//
