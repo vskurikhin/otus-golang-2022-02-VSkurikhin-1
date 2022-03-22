@@ -46,11 +46,11 @@ func unpackRuneLetter(b *strings.Builder, current rune, runes []rune) error {
 		}
 	}
 	if unicode.IsDigit(*head) {
-		if n, err := strconv.Atoi(string(*head)); err != nil {
+		n, err := strconv.Atoi(string(*head))
+		if err != nil {
 			return err
-		} else {
-			WriteRuneNTimes(b, current, n)
 		}
+		WriteRuneNTimes(b, current, n)
 		if head, tail = splitToHeadAndTail(tail); nil == head {
 			return nil
 		}
