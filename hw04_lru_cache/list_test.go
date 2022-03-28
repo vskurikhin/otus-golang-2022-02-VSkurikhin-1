@@ -121,6 +121,19 @@ func TestListRemoveTwo(t *testing.T) {
 	require.Nil(t, l.Back())
 }
 
+func TestListMoveToFrontOne(t *testing.T) {
+	l := NewList()
+	test1 := l.PushBack("test1")
+	l.MoveToFront(test1)
+	require.Equal(t, 1, l.Len())
+	require.Equal(t, "test1", l.Front().Value)
+	require.Equal(t, "test1", l.Back().Value)
+	require.Nil(t, l.Front().Prev)
+	require.Nil(t, l.Front().Next)
+	require.Nil(t, l.Back().Next)
+	require.Nil(t, l.Back().Prev)
+}
+
 func TestListMoveToFront(t *testing.T) {
 	l := NewList()
 	l.PushBack("test1")

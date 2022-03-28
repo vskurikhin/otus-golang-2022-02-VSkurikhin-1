@@ -17,7 +17,7 @@ type ListItem struct {
 }
 
 type list struct {
-	List  // Remove me after realization.
+	List
 	size  int
 	front *ListItem
 	back  *ListItem
@@ -86,13 +86,13 @@ func (l *list) Remove(item *ListItem) {
 			l.front = item.Next
 			done = true // обработали случай когда удалили первый в списке
 		}
-		if prev != nil {
-			prev.Next = next
-			done = true // обработали случай для предыдущего, когда где-то между первым и вторым
-		}
 		if l.back == item {
 			l.back = item.Prev
 			done = true // обработали случай когда удалили последний в списке
+		}
+		if prev != nil {
+			prev.Next = next
+			done = true // обработали случай для предыдущего, когда где-то между первым и вторым
 		}
 		if next != nil {
 			next.Prev = prev
