@@ -1,6 +1,8 @@
 package hw04lrucache
 
-import "sync"
+import (
+	"sync"
+)
 
 type Key string
 
@@ -55,7 +57,7 @@ func (l *lruCache) Set(key Key, value interface{}) bool {
 	if l.queue.Len() > l.capacity {
 		last := l.queue.Back()
 		l.queue.Remove(last)
-		if i, ok := last.Value.(cacheItem); ok {
+		if i, ok := last.Value.(*cacheItem); ok {
 			delete(l.items, i.key)
 		}
 	}
