@@ -7,7 +7,9 @@ import (
 )
 
 func Top10(s string) []string {
-	return getTop(rankByFrequency(mapToEntries(makeBarGraph(split(s)))), 10)
+	m := makeBarGraph(split(s))
+	entries := mapToEntries(m)
+	return getTop(rankByFrequency(entries), 10)
 }
 
 var split = split2
@@ -95,7 +97,7 @@ func rankByFrequency(list Entries) Entries {
 }
 
 func getTop(list Entries, n int) []string {
-	result := make([]string, 0)
+	result := make([]string, 0, n)
 	for i, e := range list {
 		result = append(result, e.Word)
 		if i > n-2 {
