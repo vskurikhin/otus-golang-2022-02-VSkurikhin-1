@@ -78,31 +78,32 @@ func (l *list) pushBack(item *ListItem) *ListItem {
 }
 
 func (l *list) Remove(item *ListItem) {
-	if l.size > 0 {
-		done := false
-		prev := item.Prev
-		next := item.Next
-		if l.front == item {
-			l.front = item.Next
-			done = true // обработали случай когда удалили первый в списке
-		}
-		if l.back == item {
-			l.back = item.Prev
-			done = true // обработали случай когда удалили последний в списке
-		}
-		if prev != nil {
-			prev.Next = next
-			done = true // обработали случай для предыдущего, когда где-то между первым и вторым
-		}
-		if next != nil {
-			next.Prev = prev
-			done = true // обработали случай для следующего, когда где-то между первым и вторым
-		}
-		if done {
-			item.Next = nil // почистили ссылки в
-			item.Prev = nil // удаляемом элементе
-			l.size--
-		}
+	if l.size < 1 {
+		return
+	}
+	done := false
+	prev := item.Prev
+	next := item.Next
+	if l.front == item {
+		l.front = item.Next
+		done = true // обработали случай когда удалили первый в списке
+	}
+	if l.back == item {
+		l.back = item.Prev
+		done = true // обработали случай когда удалили последний в списке
+	}
+	if prev != nil {
+		prev.Next = next
+		done = true // обработали случай для предыдущего, когда где-то между первым и вторым
+	}
+	if next != nil {
+		next.Prev = prev
+		done = true // обработали случай для следующего, когда где-то между первым и вторым
+	}
+	if done {
+		item.Next = nil // почистили ссылки в
+		item.Prev = nil // удаляемом элементе
+		l.size--
 	}
 }
 
