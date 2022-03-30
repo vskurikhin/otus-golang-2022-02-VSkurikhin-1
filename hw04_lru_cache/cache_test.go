@@ -164,6 +164,7 @@ func TestCacheEjectionLeastRecentlyUnused(t *testing.T) {
 	test1, ok1 := cache.Get("key1")
 	require.False(t, ok1)
 	require.NotEqual(t, "test1", test1)
+	require.Nil(t, test1)
 }
 
 func TestCacheEmpty(t *testing.T) {
