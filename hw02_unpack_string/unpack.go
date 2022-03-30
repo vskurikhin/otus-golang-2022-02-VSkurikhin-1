@@ -29,16 +29,15 @@ func unpackRuneLetter(b *strings.Builder, current rune, runes []rune) error {
 	}
 	result := current
 	head, tail := splitToHeadAndTail(runes)
-	if head == nil {
+	if nil == head {
 		b.WriteRune(current)
 		return nil
 	}
 	if BACKSLASH == current {
-		var err error
-		result, err = unpackRuneBackslash(*head)
-		if err != nil {
-			return err
+		if !unicode.IsDigit(*head) && *head != BACKSLASH {
+			return ErrInvalidString
 		}
+		result = *head
 		head, tail = splitToHeadAndTailBackslashNumber(&current, head, tail)
 		if nil == head {
 			b.WriteRune(result)
@@ -58,15 +57,6 @@ func unpackRuneLetter(b *strings.Builder, current rune, runes []rune) error {
 		b.WriteRune(result)
 	}
 	return unpackRuneLetter(b, *head, tail)
-}
-
-// Вспомогательная ф-ция которая проверяет экранируемые символы,
-// если это не числовой символ или не братная косая черта то возвращается ошибка.
-func unpackRuneBackslash(next rune) (rune, error) {
-	if !unicode.IsDigit(next) && next != BACKSLASH {
-		return 0, ErrInvalidString
-	}
-	return next, nil
 }
 
 // Вспомогательная ф-ция разбивающая массив символов на `голову` и `хвост`,
