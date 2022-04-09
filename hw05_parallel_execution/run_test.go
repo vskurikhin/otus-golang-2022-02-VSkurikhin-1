@@ -68,3 +68,36 @@ func TestRun(t *testing.T) {
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
 }
+
+func TestRun5of6(t *testing.T) {
+	t.Run("if were errors in first M tasks, than finished not more N+M tasks", func(t *testing.T) {
+		tasksCount := 2
+		tasks := make([]Task, 0, tasksCount)
+		tasks = append(tasks, func() error {
+			fmt.Println("Hello world 1")
+			return nil
+		})
+		tasks = append(tasks, func() error {
+			fmt.Println("Hello world 2")
+			return nil
+		})
+		tasks = append(tasks, func() error {
+			fmt.Println("Hello error 1")
+			return fmt.Errorf("Hello error 1")
+		})
+		tasks = append(tasks, func() error {
+			fmt.Println("Hello error 2")
+			return fmt.Errorf("Hello error 2")
+		})
+		tasks = append(tasks, func() error {
+			time.Sleep(1000000)
+			fmt.Println("Hello world 3")
+			return nil
+		})
+		tasks = append(tasks, func() error {
+			fmt.Println("Hello world 4")
+			return nil
+		})
+		_ = Run(tasks, 2, 2)
+	})
+}
