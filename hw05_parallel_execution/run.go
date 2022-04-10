@@ -25,7 +25,7 @@ func Run(tasks []Task, n, m int) error {
 	result := NewErrorsSync(n)
 
 	for i := 0; i < n; i++ {
-		go worker(jobs, result, counter, m)
+		go worker(jobs, result, counter, uint(m))
 	}
 	result.LogErrors()
 
@@ -36,17 +36,17 @@ func Run(tasks []Task, n, m int) error {
 }
 
 // Логика воркера.
-func worker(jobs *Jobs, result *ErrorsSync, counter *countHolder, m int) {
+func worker(jobs *Jobs, result *ErrorsSync, counter *countHolder, m uint) {
 	defer result.Done()
 	for task := range *jobs.Get() {
+		if counter.get() >= int32(m) {
+			jobs.Clear()
+			return
+		}
 		err := task()
+		result.Send(err)
 		if err != nil {
-			result.Send(err)
 			counter.inc()
-			if counter.get() >= int32(m) {
-				jobs.Clear()
-				return
-			}
 		}
 	}
 }

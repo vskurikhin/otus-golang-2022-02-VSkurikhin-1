@@ -69,35 +69,207 @@ func TestRun(t *testing.T) {
 	})
 }
 
-func TestRun5of6(t *testing.T) {
-	t.Run("if were errors in first M tasks, than finished not more N+M tasks", func(t *testing.T) {
-		tasksCount := 2
-		tasks := make([]Task, 0, tasksCount)
-		tasks = append(tasks, func() error {
-			fmt.Println("Hello world 1")
+// Значение m <= 0 трактуется на усмотрение программиста.
+// Считать это как "максимум 0 ошибок", значит функция всегда будет возвращать ErrErrorsLimitExceeded.
+func TestMEqualOrLessZeroAlwaysErrErrorsLimitExceeded(t *testing.T) {
+	setTests := []struct {
+		fun      func() error
+		expected error
+	}{
+		{fun: func() error {
+			fmt.Println("Test 0")
 			return nil
-		})
-		tasks = append(tasks, func() error {
-			fmt.Println("Hello world 2")
+		}},
+		{fun: func() error {
+			fmt.Println("Test 1")
 			return nil
-		})
-		tasks = append(tasks, func() error {
-			fmt.Println("Hello error 1")
-			return fmt.Errorf("Hello error 1")
-		})
-		tasks = append(tasks, func() error {
-			fmt.Println("Hello error 2")
-			return fmt.Errorf("Hello error 2")
-		})
-		tasks = append(tasks, func() error {
-			time.Sleep(1000000)
-			fmt.Println("Hello world 3")
+		}},
+		{fun: func() error {
+			fmt.Println("Test 2")
 			return nil
-		})
-		tasks = append(tasks, func() error {
-			fmt.Println("Hello world 4")
+		}},
+		{fun: func() error {
+			fmt.Println("Test 3")
 			return nil
-		})
-		_ = Run(tasks, 2, 2)
-	})
+		}},
+		{fun: func() error {
+			fmt.Println("Test 4")
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 5")
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 6")
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 7")
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 8")
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 9")
+			return nil
+		}},
+	}
+	tasks := make([]Task, 0, len(setTests))
+	for _, t := range setTests {
+		tasks = append(tasks, t.fun)
+	}
+	err := Run(tasks, 4, 0)
+	require.Equal(t, err, ErrErrorsLimitExceeded)
+	err1 := Run(tasks, 4, -1)
+	require.Equal(t, err1, ErrErrorsLimitExceeded)
+}
+
+// -------ok-----ok-----ok-----ok  (1 воркер выполнил 4 задачи).
+// -----------ok-------------ok    (2 воркер выполнил 2 задачи).
+// -----ok---------ok---------ok   (3 воркер выполнил 3 задачи).
+// --------------------ok          (4 воркер выполнил 1 задачу).
+// Выполнится 10 задач (10 успешно): задач не осталось, воркеры остановились.
+
+func TestRun10of10(t *testing.T) {
+	var runTasksCount int32
+	setTests := []struct {
+		fun      func() error
+		expected error
+	}{
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 7)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 11)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 5)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 20)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 5)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 13)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 9)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 9)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 5)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 5)
+			atomic.AddInt32(&runTasksCount, 1)
+			return nil
+		}},
+	}
+	tasks := make([]Task, 0, len(setTests))
+	for _, t := range setTests {
+		tasks = append(tasks, t.fun)
+	}
+	err := Run(tasks, 4, 1)
+	require.Nil(t, err)
+	require.Equal(t, runTasksCount, int32(10), "not all tasks were completed")
+}
+
+// ------ok--------ok (узнал, что лимит превышен и остановился).
+// -----------err.
+// ---err.
+// --------ok-------ok.
+
+func TestRun6of10(t *testing.T) {
+	setTests := []struct {
+		fun      func() error
+		expected error
+	}{
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 6)
+			fmt.Println("Test 0")
+			return nil
+		}},
+		{
+			fun: func() error {
+				fmt.Println("Test 1")
+				time.Sleep(time.Millisecond * 11)
+				return fmt.Errorf("Error 0 in Test 1")
+			},
+			expected: fmt.Errorf("Error 0 in Test 1"),
+		},
+		{
+			fun: func() error {
+				fmt.Println("Test 2")
+				time.Sleep(time.Millisecond * 3)
+				return fmt.Errorf("Error 1 in Test 2")
+			},
+			expected: fmt.Errorf("Error 1 in Test 2"),
+		},
+		{fun: func() error {
+			fmt.Println("Test 3")
+			time.Sleep(time.Millisecond * 8)
+			return nil
+		}},
+		{fun: func() error {
+			time.Sleep(time.Millisecond * 8)
+			fmt.Println("Test 4")
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 5")
+			time.Sleep(time.Millisecond * 7)
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 6")
+			time.Sleep(time.Millisecond * 20)
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 7")
+			time.Sleep(time.Millisecond * 20)
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 8")
+			time.Sleep(time.Millisecond * 20)
+			return nil
+		}},
+		{fun: func() error {
+			fmt.Println("Test 9")
+			time.Sleep(time.Millisecond * 20)
+			return nil
+		}},
+	}
+	tasks := make([]Task, 0, len(setTests))
+	for _, t := range setTests {
+		tasks = append(tasks, t.fun)
+	}
+	err := Run(tasks, 4, 2)
+	require.Equal(t, err, ErrErrorsLimitExceeded)
 }

@@ -39,6 +39,10 @@ func (s *ErrorsSync) Done() {
 	s.wg.Done()
 }
 
+func (s *ErrorsSync) Wait() {
+	s.wg.Wait()
+}
+
 func (s *ErrorsSync) LogErrors() {
 	for e := range s.errors {
 		if s.debug {
